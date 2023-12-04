@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.sj.mapper.BoardMapper">
+<!-- 	게시글 추가 -->
+	<insert id = "insertboard">
+		insert into board(bname,title,content,bdate,count) values(#{bname},#{title},#{content},#{bdate},0);
+	</insert>
+<!-- 	게시글 목록 -->
+	<select id = "viewboard" resultType="com.sj.model.BoardDTO">
+		select * from board;
+	</select>
+<!-- 	게시글 상세보기 -->
+	<select id = "detailboard" resultType="com.sj.model.BoardDTO">
+		select * from board where bno = #{bno};
+	</select>
+<!-- 	게시글 삭제 -->
+	<delete id = "deleteboard">
+		delete from board where bno = #{bno};
+	</delete>
+<!-- 	게시글 수정 -->
+	<update id = "updateboard">
+		update board set title = #{title}, content = #{content} where bno = #{bno};
+	</update>
+	
+	<update id = "countup">
+  			update board
+			set count = count + 1
+			where bno = #{bno}
+  	</update>
+  		
+	<select id="list" resultType="com.sj.model.BoardDTO">
+  			
+  			select *
+			from(
+				select @rownum:=@rownum+1 rownum, b.*
+				from board b, (select @rownum:=0) as tmp
+				<if test="keyword != null">
+					<choose>
+						<when test="type=='T'.toString()">
+							 where title like concat('%',#{keyword},'%')
+						</when>
+						<when test="type=='C'.toString()">
+							where content like concat('%',#{keyword},'%')
+						</when>
+						<otherwise>
+							where title like concat('%',#{keyword},'%')
+					      OR  content like concat('%',#{keyword},'%')
+						</otherwise>
+					
+					</choose>
+
+			    </if>
+			    order by bno desc
+			) as boardlist
+			<![CDATA[
+			where rownum > (#{pagenum}-1)*#{amount} and rownum <= #{pagenum}*#{amount}
+			]]>
+  		</select>
+  		
+  		<select id="total" resultType="int">
+  			select count(*) from board
+  			<if test="keyword != null">
+						
+			<choose>
+				<when test="type=='T'.toString()">
+					 where title like concat('%',#{keyword},'%')
+				</when>
+				<when test="type=='C'.toString()">
+					where content like concat('%',#{keyword},'%')
+				</when>
+				<otherwise>
+					where title like concat('%',#{keyword},'%')
+			      OR  content like concat('%',#{keyword},'%')
+				</otherwise>
+			
+			</choose>
+			
+			
+			</if>
+  		</select>
+  		
+  		
+</mapper>
